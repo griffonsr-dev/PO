@@ -72,7 +72,7 @@ LIVE_CONFIRMATION=LIVE
 
 Values supplied as environment variables override `MASTER_SSID` and `CHILD_SSID`; numbered `CHILD_SSID_N` environment variables are also supported. Keep `.env` private: it is ignored by Git.
 
-The selected mode reads only its matching profile: demo mode reads `.env.demo` and live mode reads `.env.live`. Both profile files are ignored by Git. The older `.env` file is retained for compatibility with older revisions but is not used by the mode-based command.
+The selected mode reads its matching profile when present: demo mode reads `.env.demo` and live mode reads `.env.live`. Both profile files are ignored by Git, and the required account credentials may instead be supplied as environment variables (for example, on Railway). The older `.env` file is retained for compatibility with older revisions but is not used by the mode-based command.
 
 Some Pocket Option clients provide an auth wrapper rather than only the session token. The executor accepts either the plain SSID or the compatible `...["auth",{...}]` payload format.
 

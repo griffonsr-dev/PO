@@ -612,14 +612,14 @@ def main(mode: str | None = None) -> None:
         if not confirm_live_mode(config):
             raise SystemExit("Live mode was not confirmed")
 
-    profile_path = Path(__file__).resolve().parent / f".env.{mode}"
-    if not profile_path.exists():
-        raise SystemExit(f"Create {profile_path.name} with the {mode} account credentials before starting")
-
     master_ssid = config.get("MASTER_SSID") or os.getenv("MASTER_SSID")
     child_ssids = get_child_ssids(config)
     if not master_ssid or not child_ssids:
-        raise SystemExit(f"Set MASTER_SSID and at least one CHILD_SSID in {profile_path.name} or your environment before running this script")
+        profile_path = Path(__file__).resolve().parent / f".env.{mode}"
+        raise SystemExit(
+            f"Set MASTER_SSID and at least one CHILD_SSID in {profile_path.name} "
+            "or your environment before running this script"
+        )
 
     is_demo = 1 if mode == "demo" else 0
     logger.info("mirror mode enabled | mode=%s | master=%s | children=%s", mode, master_ssid[:8], len(child_ssids))

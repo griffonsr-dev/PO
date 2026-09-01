@@ -123,6 +123,12 @@ def test_live_mode_returns_false_when_no_input_is_available(monkeypatch):
         assert confirm_live_mode() is False
 
 
+def test_child_ssids_can_be_loaded_from_environment_without_profile_file(monkeypatch):
+    monkeypatch.setenv("CHILD_SSID", "child-session")
+    monkeypatch.setenv("CHILD_SSID_2", "second-child-session")
+    assert get_child_ssids() == ["child-session", "second-child-session"]
+
+
 def test_deal_to_trade_event_preserves_put_and_derives_duration():
     class Deal:
         id = "deal-1"
