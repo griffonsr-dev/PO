@@ -32,6 +32,8 @@ class PocketOptionTradeExecutor:
         self._opened_deals_snapshot: list[Any] = []
         self._opened_deals_event: asyncio.Event | None = None
         self._opened_trade_events: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self._balance: Any | None = None
+        self._balance_event = asyncio.Event()
 
     def _extract_ssid_payload(self, ssid: str) -> tuple[str, dict[str, Any]]:
         if not ssid:
@@ -154,6 +156,7 @@ class PocketOptionTradeExecutor:
         try:
             await asyncio.wait_for(client.authorized_event.wait(), timeout=10)
             logger.info("%s | authorized successfully", self.label)
+            await self._request_balance(client)
         except asyncio.TimeoutError:
             logger.warning("%s | authorization timed out", self.label)
 
@@ -167,6 +170,38 @@ class PocketOptionTradeExecutor:
         client.add_on("successopenOrder", self._handle_success_open_deal, model=None)
         client.add_on("updateOpenedDeals", self._handle_opened_deals_update, model=None)
         client.add_on("successcloseOrder", self._handle_success_close_deals, model=None)
+        try:
+            from pocket_option.models import SuccessUpdateBalanceEvent
+
+            client.add_on("successupdateBalance", self._handle_balance_update, model=SuccessUpdateBalanceEvent)
+        except ImportError:
+            logger.warning("%s | balance event model unavailable", self.label)
+
+    async def _handle_balance_update(self, update: Any) -> None:
+        if isinstance(update, dict):
+            balance = update.get("balance")
+        else:
+            balance = getattr(update, "balance", None)
+
+        self._balance = balance
+        self._balance_event.set()
+        logger.info("%s | balance=%s", self.label, balance)
+
+    async def _request_balance(self, client: Any) -> None:
+        emit = getattr(client, "emit", None)
+        update_balance = getattr(emit, "update_balance", None)
+        if not callable(update_balance):
+            logger.warning("%s | balance request is not supported by this client", self.label)
+            return
+
+        self._balance_event.clear()
+        try:
+            await update_balance()
+            await asyncio.wait_for(self._balance_event.wait(), timeout=5)
+        except asyncio.TimeoutError:
+            logger.warning("%s | balance update timed out", self.label)
+        except Exception as exc:
+            logger.warning("%s | balance request failed: %s", self.label, exc)
 
     def _get_opened_deals_event(self) -> asyncio.Event:
         if self._opened_deals_event is None:

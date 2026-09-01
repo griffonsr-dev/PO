@@ -89,6 +89,19 @@ def test_open_deal_callback_queues_trade_event_without_polling():
     assert event["action"] == "call"
 
 
+def test_balance_callback_records_and_logs_balance():
+    from mirror_trade import PocketOptionTradeExecutor
+
+    class BalanceUpdate:
+        balance = "123.45"
+
+    executor = PocketOptionTradeExecutor("ssid", "child-1")
+    asyncio.run(executor._handle_balance_update(BalanceUpdate()))
+
+    assert executor._balance == "123.45"
+    assert executor._balance_event.is_set()
+
+
 def test_extracts_ssid_and_payload_from_wrapper():
     from mirror_trade import PocketOptionTradeExecutor
 
