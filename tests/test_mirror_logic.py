@@ -113,6 +113,10 @@ def test_live_mode_accepts_env_confirmation_without_prompt(monkeypatch):
     assert confirm_live_mode() is True
 
 
+def test_live_mode_accepts_confirmation_from_loaded_profile():
+    assert confirm_live_mode({"LIVE_CONFIRMATION": "'LIVE'"}) is True
+
+
 def test_live_mode_returns_false_when_no_input_is_available(monkeypatch):
     monkeypatch.delenv("LIVE_CONFIRMATION", raising=False)
     with patch("builtins.input", side_effect=EOFError):

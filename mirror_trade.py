@@ -551,8 +551,10 @@ async def execute_child_trade_plan(master_executor: Any, child_executor: Any, pl
     }
 
 
-def confirm_live_mode() -> bool:
-    env_value = os.getenv("LIVE_CONFIRMATION", "").strip()
+def confirm_live_mode(config: dict[str, str] | None = None) -> bool:
+    config = config or {}
+    env_value = config.get("LIVE_CONFIRMATION") or os.getenv("LIVE_CONFIRMATION", "")
+    env_value = env_value.strip().strip('"').strip("'").strip()
     if env_value:
         return env_value.upper() == "LIVE"
 
@@ -575,7 +577,7 @@ def load_config(mode: str = "demo") -> dict[str, str]:
             key, value = line.split("=", 1)
             config[key.strip()] = value.strip().strip('"').strip("'")
 
-    for key in ["MASTER_SSID", "CHILD_SSID"]:
+    for key in ["MASTER_SSID", "CHILD_SSID", "LIVE_CONFIRMATION"]:
         env_value = os.getenv(key)
         if env_value is not None:
             config[key] = env_value
@@ -605,11 +607,11 @@ def main(mode: str | None = None) -> None:
     if mode not in {"demo", "live"}:
         raise SystemExit("Mode must be demo or live")
 
+    config = load_config(mode)
     if mode == "live":
-        if not confirm_live_mode():
+        if not confirm_live_mode(config):
             raise SystemExit("Live mode was not confirmed")
 
-    config = load_config(mode)
     profile_path = Path(__file__).resolve().parent / f".env.{mode}"
     if not profile_path.exists():
         raise SystemExit(f"Create {profile_path.name} with the {mode} account credentials before starting")

@@ -54,6 +54,7 @@ AMOUNT=1
 DURATION=60
 POCKET_OPTION_REGION=DEMO
 MIRROR_EXISTING_OPEN_DEALS=false
+LIVE_CONFIRMATION=LIVE
 ```
 
 ### Configuration values
@@ -67,6 +68,7 @@ MIRROR_EXISTING_OPEN_DEALS=false
 | `DURATION` | No | Fallback duration in seconds when the master deal does not provide one. Defaults to `60`. |
 | `POCKET_OPTION_REGION` | No | Client region name. The default is `DEMO` for demo sessions and `EUROPA` otherwise. |
 | `MIRROR_EXISTING_OPEN_DEALS` | No | Set to `true`, `1`, `yes`, or `on` to mirror deals already open at startup. Defaults to false. |
+| `LIVE_CONFIRMATION` | Live only | Set to `LIVE` to allow unattended live-mode startup. |
 
 Values supplied as environment variables override `MASTER_SSID` and `CHILD_SSID`; numbered `CHILD_SSID_N` environment variables are also supported. Keep `.env` private: it is ignored by Git.
 
