@@ -4,8 +4,17 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from unittest.mock import patch
+
 from logger import setup_logger
-from mirror_trade import _deal_to_trade_event, create_trade_plan, execute_trade_plan, get_child_ssids, normalize_action
+from mirror_trade import (
+    _deal_to_trade_event,
+    confirm_live_mode,
+    create_trade_plan,
+    execute_trade_plan,
+    get_child_ssids,
+    normalize_action,
+)
 
 
 class FakeExecutor:
@@ -97,6 +106,17 @@ def test_normalize_action_maps_numeric_command_values_correctly():
     assert normalize_action("0") == "call"
     assert normalize_action(1) == "put"
     assert normalize_action("1") == "put"
+
+
+def test_live_mode_accepts_env_confirmation_without_prompt(monkeypatch):
+    monkeypatch.setenv("LIVE_CONFIRMATION", "LIVE")
+    assert confirm_live_mode() is True
+
+
+def test_live_mode_returns_false_when_no_input_is_available(monkeypatch):
+    monkeypatch.delenv("LIVE_CONFIRMATION", raising=False)
+    with patch("builtins.input", side_effect=EOFError):
+        assert confirm_live_mode() is False
 
 
 def test_deal_to_trade_event_preserves_put_and_derives_duration():

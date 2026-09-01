@@ -551,6 +551,19 @@ async def execute_child_trade_plan(master_executor: Any, child_executor: Any, pl
     }
 
 
+def confirm_live_mode() -> bool:
+    env_value = os.getenv("LIVE_CONFIRMATION", "").strip()
+    if env_value:
+        return env_value.upper() == "LIVE"
+
+    try:
+        confirmation = input("LIVE mode places real trades. Type LIVE to continue: ").strip()
+    except EOFError:
+        return False
+
+    return confirmation == "LIVE"
+
+
 def load_config(mode: str = "demo") -> dict[str, str]:
     config: dict[str, str] = {}
     env_path = Path(__file__).resolve().parent / f".env.{mode}"
@@ -593,8 +606,7 @@ def main(mode: str | None = None) -> None:
         raise SystemExit("Mode must be demo or live")
 
     if mode == "live":
-        confirmation = input("LIVE mode places real trades. Type LIVE to continue: ").strip()
-        if confirmation != "LIVE":
+        if not confirm_live_mode():
             raise SystemExit("Live mode was not confirmed")
 
     config = load_config(mode)
